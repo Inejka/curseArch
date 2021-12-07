@@ -2,17 +2,17 @@ import spacy
 import sqlite3
 
 # coding=utf8
-nlp = spacy.load("ru_core_news_lg")
 # pos = []
 # rarity = {}
 ok_types = ['VERB', 'NOUN', 'ADP']
 
 
-def transoport_to_db(file_name):
+def transport_to_db(file_name):
+    nlp = spacy.load("ru_core_news_lg")
     conn = sqlite3.connect("data/db.sqlite")
     c = conn.cursor()
-    c.execute("DROP TABLE IF EXISTS keywords_db")
-    c.execute("CREATE TABLE keywords_db (keyword TEXT,UNIQUE(keyword))")
+    c.execute("DROP TABLE IF EXISTS keywords")
+    c.execute("CREATE TABLE keywords (keyword TEXT,UNIQUE(keyword))")
     c.execute("DROP TABLE IF EXISTS tasks")
     c.execute("CREATE TABLE tasks (task TEXT,time INTEGER, UNIQUE(task))")
     file = open(file_name, 'r', encoding="utf8")
@@ -25,7 +25,7 @@ def transoport_to_db(file_name):
         tmp = nlp(words)
         for token in tmp:
             if (token.pos_ in ok_types and not token.is_stop):
-                c.execute("INSERT OR IGNORE INTO keywords_db(keyword) VALUES(?)", (token.lemma_,))
+                c.execute("INSERT OR IGNORE INTO keywords(keyword) VALUES(?)", (token.lemma_,))
             # print(token.lemma_, token.is_stop, token.pos_)
             # if not (token.pos_ in pos):
             #    pos.append(token.pos_)
