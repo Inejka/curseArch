@@ -4,12 +4,53 @@ import spacy
 
 class data_transformer:
 
-    def __init__(self):
+    def __init__(self, path):
+        self.path = path
         self.nlp = spacy.load("ru_core_news_lg")
-        conn = sqlite3.connect("data/db.sqlite")
+        self.reload()
+
+    def get_voc_size(self):
+        return self.vocabulary_size
+
+    def get_train_data(self):
+        conn = sqlite3.connect(self.path)
+        c = conn.cursor()
+        c.execute("SELECT * FROM tasks")
+        X = []
+        Y = []
+        for i in c:
+            vec = self.get_vec(i[0])
+            X.append(vec)
+            Y.append(i[1] if i[1] > 0 else -100)
+            # data.append([vec, i[1] if i[1] > 0 else -1000])
+        conn.close()
+        return X, Y
+
+    def get_vec(self, str, show_res=False):
+        to_return = self.zeros_list.copy()
+        tmp = self.nlp(str)
+        for token in tmp:
+            try:
+                index = self.vocabulary[token.lemma_]
+            except:
+                if show_res:
+                    print(token.lemma_)
+                pass
+            else:
+                to_return[index] += 1
+        return to_return
+
+    def get_vecs(self, strs, show_res=False):
+        test = []
+        for i in strs:
+            temp = self.get_vec(i, show_res)
+            test.append(temp)
+        return test
+
+    def reload(self):
+        conn = sqlite3.connect(self.path)
         c = conn.cursor()
         c.execute("SELECT * FROM keywords")
-        # print(c.fetchall())
         self.vocabulary = {}
         j = 0
         for i in c:
@@ -20,27 +61,3 @@ class data_transformer:
         for i in range(j):
             self.zeros_list.append(0)
         conn.close()
-
-    def get_train_data(self):
-        conn = sqlite3.connect("data/db.sqlite")
-        c = conn.cursor()
-        c.execute("SELECT * FROM tasks")
-        data = []
-        for i in c:
-            vec = self.get_vec(i[0])
-            data.append([vec, i[1] if i[1] > 0 else -1000])
-        conn.close()
-        return data
-
-    def get_vec(self, str):
-        to_return = self.zeros_list.copy()
-        tmp = self.nlp(str)
-        for token in tmp:
-            try:
-                index = self.vocabulary[token.lemma_]
-            except:
-                print(token.lemma_)
-                pass
-            else:
-                to_return[index] += 1
-        return to_return
