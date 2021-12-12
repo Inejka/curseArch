@@ -1,5 +1,7 @@
 import sqlite3
 import spacy
+# https://pythonrepo.com/repo/ahmados-rusynonyms-python-natural-language-processing
+from ru_synonyms import SynonymsGraph
 
 
 class data_transformer:
@@ -8,6 +10,7 @@ class data_transformer:
         self.path = path
         self.nlp = spacy.load("ru_core_news_lg")
         self.reload()
+        self.sg = SynonymsGraph()
 
     def get_voc_size(self):
         return self.vocabulary_size
@@ -33,9 +36,22 @@ class data_transformer:
             try:
                 index = self.vocabulary[token.lemma_]
             except:
-                if show_res:
-                    print(token.lemma_)
-                pass
+                if show_res and not token.is_stop:
+                    # print(token.lemma_, "---", self.most_similar(self.nlp.vocab[token.lemma_]))
+                    # print(self.sg.is_in_dictionary(token.lemma_))
+                    if self.sg.is_in_dictionary(token.lemma_):
+                        listt = self.sg.get_list(token.lemma_)
+                        for i in listt:
+                            found = False
+                            try:
+                                index = self.vocabulary[token.lemma_]
+                            except:
+                                pass
+                            else:
+                                to_return[index] += 1
+                                found = True
+                            if found:
+                                break
             else:
                 to_return[index] += 1
         return to_return
@@ -61,3 +77,7 @@ class data_transformer:
         for i in range(j):
             self.zeros_list.append(0)
         conn.close()
+
+    def most_similar(self, word):
+        by_similarity = sorted(word.vocab, key=lambda w: word.similarity(w), reverse=True)
+        return [w.orth_ for w in by_similarity[:10]]
