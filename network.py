@@ -2,6 +2,8 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense
 import keras
+from keras_visualizer import visualizer
+from tensorflow.keras.utils import plot_model
 
 
 class model:

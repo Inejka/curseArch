@@ -27,7 +27,7 @@ class app:
                          "сделать проектик на спринге и оформить в гитхаб", "написать документацию для JMantic",
                          "опубликовать пакет JMantic на гитхаб", "погладить кота 3", "сделать чай",
                          "осудить себя за то, что между погладить кота 3 и 4 на самом деле смотрел ютаб", "пойти спать",
-                         "покушоц и выпить чай", "покушоц и сделать чай", "убраться в квартире", "убраться из дома",
+                         "покушоц и выпить чай", "покушоц и заварить чай", "убраться в квартире", "убраться из дома",
                          "сходить в магазин", "купить одежду", "купить технику", "Пусть будет подстричь кошке когти",
                          "NULL ETALON",
                          "Придумать подарки родителям на новый год", "Пересчитать шкалу скидок в курсовой",
@@ -74,6 +74,7 @@ class app:
                 print(self.load_local())
 
     def train_global(self):
+        self.global_dt.reload()
         self.global_net = network.model(self.global_dt.get_voc_size(), self.epochs)
         start = timer()
         X, Y = self.global_dt.get_train_data()
@@ -83,18 +84,19 @@ class app:
     def predict_examples(self):
         to_return = []
         for i in self.examples:
-            to_return.append([i, self.get_time(i)[0]])
+            to_return.append([i, self.get_time(i)])
         return to_return
 
     def update_global_database(self):
         self.global_fw.reset_db()
         self.global_fw.transport_to_db("data/k_tasks")
         self.global_fw.transport_to_db("data/i_tasks")
+        self.global_fw.transport_to_db("data/r_tasks")
         return "Database updated"
 
     def save_global(self):
-        # self.global_net.save("data/" + "global")
-        return "Global NOT saved"
+        self.global_net.save("data/" + "global")
+        return "Global saved"
 
     def load_global(self):
         self.global_net = network.model(self.global_dt.get_voc_size(), self.epochs)
